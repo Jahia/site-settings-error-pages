@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<content xmlns:j="http://www.jahia.org/jahia/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0">
+    <modules jcr:primaryType="jnt:modules">
+        <site-settings-error-pages j:dependencies="default"
+                                 j:modulePriority="0"
+                                 j:moduleType="module"
+                                 j:title="Customize error pages"
+                                 jcr:primaryType="jnt:module">
+                
+                <portlets jcr:primaryType="jnt:portletFolder"/>
+                <files jcr:primaryType="jnt:folder"/>
+                <contents jcr:primaryType="jnt:contentFolder"/>
+                <templates j:rootTemplatePath="/base" jcr:primaryType="jnt:templatesFolder">
+                    <files jcr:primaryType="jnt:folder"/>
+                    <contents jcr:primaryType="jnt:contentFolder"/>
+                    <site-settings-base j:hiddenTemplate="false"
+                                j:view="default"
+                                jcr:primaryType="jnt:template">
+                        <j:translation_fr jcr:language="fr"
+                                 jcr:mixinTypes="mix:title"
+                                 jcr:primaryType="jnt:translation"
+                                 jcr:title="site-settings-base"/>
+                        <manage-error-page-template j:defaultTemplate="false"
+                                           j:hiddenTemplate="true"
+                                           j:icon="/modules/custom-error-pages/templates/files/custom_errors.png"
+                                           j:titleKey="siteSettings.customErrorPages"
+                                           j:view="siteSettings"
+                                           jcr:mixinTypes="jmix:rbTitle"
+                                           jcr:primaryType="jnt:contentTemplate">
+                            <j:translation_fr jcr:language="fr"
+                                    jcr:mixinTypes="mix:title"
+                                    jcr:primaryType="jnt:translation"/>
+                            <pagecontent jcr:primaryType="jnt:contentList">
+                                <gestion-des-pages-derreur jcr:primaryType="jnt:customErrorPages">
+                                    <j:translation_fr jcr:language="fr"
+                                          jcr:mixinTypes="mix:title"
+                                          jcr:primaryType="jnt:translation"
+                                          jcr:title="Gestion des pages d'erreur"/>
+                                </gestion-des-pages-derreur>
+                            </pagecontent>
+                        </manage-error-page-template>
+                    </site-settings-base>
+                </templates>
+                
+            </site-settings-error-pages>
+    </modules>
+</content>
