@@ -5,16 +5,18 @@
 	<parent>
 		<groupId>org.jahia.modules</groupId>
 		<artifactId>jahia-modules</artifactId>
-		<version>7.1.2.0</version>
+		<version>8.0.0.0</version>
 	</parent>
+	<groupId>org.jahia.community</groupId>
 	<artifactId>site-settings-error-pages</artifactId>
-	<version>1.0</version>
+	<version>1.1-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 	<name>Site Settings - Customize error pages</name>
 	<description>Module to customize the most exposed error pages (400,401,404,500)</description>
 	<properties>
 		<jahia-module-type>module</jahia-module-type>
 		<jahia-depends>default</jahia-depends>
+		<require-capability>osgi.extender;filter:="(osgi.extender=org.jahia.bundles.blueprint.extender.config)"</require-capability>
 	</properties>
 	<developers>
 		<developer>
