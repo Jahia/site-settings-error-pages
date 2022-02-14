@@ -44,4 +44,15 @@
 			<url>https://devtools.jahia.com/nexus/content/groups/public</url>
 		</repository>
 	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>ps-releases</id>
+			<url>https://devtools.jahia.com/nexus/content/repositories/jahia-professional-services-private-repository</url>
+		</repository>
+		<snapshotRepository>
+			<id>ps-snapshots</id>
+			<url>https://devtools.jahia.com/nexus/content/repositories/jahia-professional-services-private-repository</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>
