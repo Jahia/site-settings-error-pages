@@ -8,6 +8,7 @@ import static org.apache.commons.httpclient.HttpStatus.SC_UNAUTHORIZED;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
@@ -44,7 +45,7 @@ import org.slf4j.Logger;
 /**
  * capture rendering exceptions and redirect them to custom error pages 400,
  * 401, 403, 404, 500
- * 
+ *
  * @author BEN AJIBA Youssef
  */
 public class ErrorPageHandler implements ErrorHandler {
@@ -141,9 +142,9 @@ public class ErrorPageHandler implements ErrorHandler {
 
 					String out = RenderService.getInstance().render(resource, renderContext).trim();
 					response.setHeader("Content-Type", "text/html");
-					response.setCharacterEncoding("ISO-8859-1");
+					response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 					response.setStatus(errorStatus);
-					response.getOutputStream().write(out.getBytes(Charset.forName("ISO-8859-1")));
+					response.getOutputStream().write(out.getBytes(StandardCharsets.UTF_8));
 					return true;
 				}
 			}
