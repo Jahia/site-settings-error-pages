@@ -55,7 +55,7 @@
 						</td>
 						<td style="text-align: center;">
 							<ui:pageSelector fieldId="input_${field.status}" label="${empty field.identifier ? selectLabel : modifyLabel}" displayFieldId="label_${field.status}" includeChildren="false"
-								displayIncludeChildren="false" valueType="identifier" />
+								displayIncludeChildren="false" valueType="identifier" nodeTypes="jnt:page,jnt:virtualsite,jnt:navMenuText" selectableNodeTypes="jnt:page" />
 						</td>
 						<td>
 							<a class="btn btn-danger btn-small" title="Supprimer" onclick="clearValues(this);">
