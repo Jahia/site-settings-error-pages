@@ -121,7 +121,7 @@ public class ErrorPageHandler implements ErrorHandler {
 				return render(session, request, response, urlResolver, sitePath, errorStatus);
 			}
 		} catch (RepositoryException e) {
-			LOGGER.error(e.getMessage(), e);
+			LOGGER.error(String.format("Error while rendering an error page for the code %d", errorStatus), e);
 		}
 		return false;
 	}
@@ -152,13 +152,9 @@ public class ErrorPageHandler implements ErrorHandler {
 				}
 			}
 		} catch (ItemNotFoundException e) {
-			LOGGER.error("the node" + e.getMessage() + " of error " + errorStatus + " does not exist or not published or not authorized to current user");
-		} catch (RepositoryException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (RenderException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (IOException e) {
-			LOGGER.error(e.getMessage(), e);
+			LOGGER.error(String.format("The node %s of error %d does not exist or not published or not authorized to current user", e.getMessage(), errorStatus));
+		} catch (RepositoryException | RenderException | IOException e) {
+			LOGGER.error(String.format("Error while rendering an error page for the code %d", errorStatus), e);
 		}
 		return false;
 	}
