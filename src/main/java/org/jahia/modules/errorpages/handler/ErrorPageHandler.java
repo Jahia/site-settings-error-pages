@@ -96,7 +96,10 @@ public class ErrorPageHandler implements ErrorHandler {
 				}
 				return render(request, response, urlResolver, sitePath, code, system);
 			} else {
-				LOGGER.error("Site not found");
+				if (LOGGER.isDebugEnabled())
+					LOGGER.error(String.format("Site not found for URL %s?%s", request.getRequestURL().toString(), request.getQueryString()));
+				else
+					LOGGER.error(String.format("Site not found for URI %s", request.getRequestURI()));
 			}
 		}
 		return false;
