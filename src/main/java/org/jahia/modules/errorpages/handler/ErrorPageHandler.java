@@ -17,6 +17,7 @@ import org.jahia.exceptions.JahiaBadRequestException;
 import org.jahia.exceptions.JahiaNotFoundException;
 import org.jahia.exceptions.JahiaRuntimeException;
 import org.jahia.exceptions.JahiaUnauthorizedException;
+import org.jahia.modules.errorpages.ErrorPageRequestWrapper;
 import org.jahia.modules.errorpages.service.ErrorPageService;
 import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionFactory;
@@ -47,7 +48,7 @@ public class ErrorPageHandler implements ErrorHandler {
     @Override
     public boolean handle(Throwable e, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         int code = HttpStatus.SC_INTERNAL_SERVER_ERROR;
-
+        final ErrorPageRequestWrapper requestWrapper = new ErrorPageRequestWrapper(request);
         if (e instanceof PathNotFoundException) {
             code = HttpStatus.SC_NOT_FOUND;
         } else if (e instanceof TemplateNotFoundException) {
@@ -70,9 +71,9 @@ public class ErrorPageHandler implements ErrorHandler {
             code = HttpStatus.SC_BAD_REQUEST;
         }
 
-        URLResolver urlResolver = (URLResolver) request.getAttribute("urlResolver");
+        URLResolver urlResolver = (URLResolver) requestWrapper.getAttribute("urlResolver");
         if (urlResolver == null) {
-            urlResolver = urlResolverFactory.createURLResolver(request.getPathInfo(), request.getServerName(), request);
+            urlResolver = urlResolverFactory.createURLResolver(requestWrapper.getPathInfo(), requestWrapper.getServerName(), requestWrapper);
         }
         if (Constants.LIVE_WORKSPACE.equals(urlResolver.getWorkspace())) {
             String sitePath = null;
@@ -85,12 +86,12 @@ public class ErrorPageHandler implements ErrorHandler {
                     // render page with root session
                     system = true;
                 }
-                return render(request, response, urlResolver, sitePath, code, system);
+                return render(requestWrapper, response, urlResolver, sitePath, code, system);
             } else {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.error(String.format("Site not found for URL %s?%s", request.getRequestURL().toString(), request.getQueryString()));
+                    LOGGER.error(String.format("Site not found for URL %s?%s", requestWrapper.getRequestURL().toString(), requestWrapper.getQueryString()));
                 } else {
-                    LOGGER.error(String.format("Site not found for URI %s", request.getRequestURI()));
+                    LOGGER.error(String.format("Site not found for URI %s", requestWrapper.getRequestURI()));
                 }
             }
         }
