@@ -1,8 +1,9 @@
 package org.jahia.modules.errorpages.webflow.bean;
 
 import java.io.Serializable;
-import org.apache.commons.httpclient.HttpStatus;
 import org.codehaus.plexus.util.StringUtils;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Model object for setting up error pages
@@ -17,8 +18,8 @@ public class ErrorPageSettings implements Serializable {
      */
     private static final long serialVersionUID = 1L;
 
-    private final Target[] targetList = new Target[]{new Target(HttpStatus.SC_BAD_REQUEST), new Target(HttpStatus.SC_UNAUTHORIZED), new Target(HttpStatus.SC_FORBIDDEN),
-        new Target(HttpStatus.SC_NOT_FOUND), new Target(HttpStatus.SC_INTERNAL_SERVER_ERROR)};
+    private final Target[] targetList = new Target[]{new Target(HttpServletResponse.SC_BAD_REQUEST), new Target(HttpServletResponse.SC_UNAUTHORIZED), new Target(HttpServletResponse.SC_FORBIDDEN),
+        new Target(HttpServletResponse.SC_NOT_FOUND), new Target(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)};
 
     public Target[] getTargetList() {
         return targetList;

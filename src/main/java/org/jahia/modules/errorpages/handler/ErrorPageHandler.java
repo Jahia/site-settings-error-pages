@@ -9,7 +9,6 @@ import javax.jcr.RepositoryException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
 import org.jahia.api.Constants;
 import org.jahia.bin.errors.ErrorHandler;
@@ -47,28 +46,28 @@ public class ErrorPageHandler implements ErrorHandler {
 
     @Override
     public boolean handle(Throwable e, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        int code = HttpStatus.SC_INTERNAL_SERVER_ERROR;
+        int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
         final ErrorPageRequestWrapper requestWrapper = new ErrorPageRequestWrapper(request);
         if (e instanceof PathNotFoundException) {
-            code = HttpStatus.SC_NOT_FOUND;
+            code = HttpServletResponse.SC_NOT_FOUND;
         } else if (e instanceof TemplateNotFoundException) {
-            code = HttpStatus.SC_NOT_FOUND;
+            code = HttpServletResponse.SC_NOT_FOUND;
         } else if (e instanceof AccessDeniedException) {
             if (JahiaUserManagerService.isGuest(JCRSessionFactory.getInstance().getCurrentUser())) {
-                code = HttpStatus.SC_UNAUTHORIZED;
+                code = HttpServletResponse.SC_UNAUTHORIZED;
             } else {
-                code = HttpStatus.SC_FORBIDDEN;
+                code = HttpServletResponse.SC_FORBIDDEN;
             }
         } else if (e instanceof JahiaRuntimeException) {
             if (e instanceof JahiaBadRequestException) {
-                code = HttpStatus.SC_BAD_REQUEST;
+                code = HttpServletResponse.SC_BAD_REQUEST;
             } else if (e instanceof JahiaUnauthorizedException) {
-                code = HttpStatus.SC_UNAUTHORIZED;
+                code = HttpServletResponse.SC_UNAUTHORIZED;
             } else if (e instanceof JahiaNotFoundException) {
-                code = HttpStatus.SC_NOT_FOUND;
+                code = HttpServletResponse.SC_NOT_FOUND;
             }
         } else if (e instanceof ClassNotFoundException) {
-            code = HttpStatus.SC_BAD_REQUEST;
+            code = HttpServletResponse.SC_BAD_REQUEST;
         }
 
         URLResolver urlResolver = (URLResolver) requestWrapper.getAttribute("urlResolver");
@@ -82,7 +81,7 @@ public class ErrorPageHandler implements ErrorHandler {
             }
             if (StringUtils.isNotBlank(sitePath)) {
                 boolean system = false;
-                if (code == HttpStatus.SC_UNAUTHORIZED || code == HttpStatus.SC_FORBIDDEN) {
+                if (code == HttpServletResponse.SC_UNAUTHORIZED || code == HttpServletResponse.SC_FORBIDDEN) {
                     // render page with root session
                     system = true;
                 }
