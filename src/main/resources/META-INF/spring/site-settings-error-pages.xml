@@ -10,5 +10,6 @@
 	<bean class="org.jahia.modules.errorpages.handler.ErrorPageHandler">
 		<property name="urlResolverFactory" ref="urlResolverFactory" />
 		<property name="errorPageService" ref="errorPageService" />
+		<property name="siteService" ref="JahiaSitesService" />
 	</bean>
 </beans>
