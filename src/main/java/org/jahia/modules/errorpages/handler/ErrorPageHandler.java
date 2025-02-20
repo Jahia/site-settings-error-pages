@@ -15,6 +15,7 @@ import org.jahia.services.render.*;
 import org.jahia.services.sites.JahiaSite;
 import org.jahia.services.sites.JahiaSitesService;
 import org.jahia.services.usermanager.JahiaUserManagerService;
+import org.jahia.utils.LanguageCodeConverters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,17 +98,21 @@ public class ErrorPageHandler implements ErrorHandler {
 
     public boolean render(final HttpServletRequest request, final HttpServletResponse response, final URLResolver urlResolver, final String sitePath, final int errorStatus, boolean system) {
         try {
-            Locale locale = urlResolver.getLocale();
-            Iterator requestLocale = request.getLocales().asIterator();
-            JahiaSite siteByKey = siteService.getSiteByKey(StringUtils.substringAfterLast(sitePath, "/"));
-            List<Locale> languagesAsLocales = siteByKey.getLanguagesAsLocales();
-            while (requestLocale.hasNext()) {
-                Locale next = (Locale) requestLocale.next();
-                if (languagesAsLocales.contains(next)) {
-                    locale = next;
-                    break;
+            Locale locale = JCRTemplate.getInstance().doExecuteWithSystemSessionAsUser(errorPageService.lookupRootUser().getJahiaUser(), urlResolver.getWorkspace(), null, (JCRSessionWrapper session) -> {
+                Locale resolverLocale = urlResolver.getLocale();
+                Iterator requestLocale = request.getLocales().asIterator();
+                JahiaSite siteByKey = null;
+                siteByKey = siteService.getSiteByKey(StringUtils.substringAfterLast(sitePath, "/"), session);
+                List<Locale> languagesAsLocales = siteByKey.getLanguagesAsLocales();
+                while (requestLocale.hasNext()) {
+                    Locale next = (Locale) requestLocale.next();
+                    if (languagesAsLocales.contains(next)) {
+                        resolverLocale = next;
+                        break;
+                    }
                 }
-            }
+                return resolverLocale;
+            });
             if (system) {
                 // render page with root session
                 return JCRTemplate.getInstance().doExecuteWithSystemSessionAsUser(errorPageService.lookupRootUser().getJahiaUser(), urlResolver.getWorkspace(), locale, (JCRSessionWrapper session) -> render(session, request, response, urlResolver, sitePath, errorStatus));
@@ -116,7 +121,7 @@ public class ErrorPageHandler implements ErrorHandler {
                 JCRSessionWrapper session = JCRSessionFactory.getInstance().getCurrentUserSession(urlResolver.getWorkspace(), locale, null);
                 return render(session, request, response, urlResolver, sitePath, errorStatus);
             }
-        } catch (RepositoryException | JahiaException e) {
+        } catch (RepositoryException e) {
             LOGGER.error(String.format("Error while rendering an error page for the code %d", errorStatus), e);
         }
         return false;
@@ -124,14 +129,15 @@ public class ErrorPageHandler implements ErrorHandler {
 
     public boolean render(JCRSessionWrapper session, HttpServletRequest request, HttpServletResponse response, URLResolver urlResolver, String sitePath, int errorStatus) {
         try {
+            JCRSiteNode site = (JCRSiteNode) session.getNode(sitePath);
+            session.setFallbackLocale(LanguageCodeConverters.languageCodeToLocale(site.getDefaultLanguage()));
             JCRNodeWrapper node = errorPageService.getSettingsNode(session, sitePath);
             if (node != null) {
                 String errorStatusString = String.valueOf(errorStatus);
                 if (node.hasNode(errorStatusString)) {
                     node = node.getNode(errorStatusString);
                     if (node.hasProperty(ErrorPageService.ERROR_PAGE_TARGET)) {
-                        node = (JCRNodeWrapper) node.getProperty(ErrorPageService.ERROR_PAGE_TARGET).getNode();
-                        JCRSiteNode site = (JCRSiteNode) session.getNode(sitePath);
+                        node = session.getNodeByUUID(node.getProperty(ErrorPageService.ERROR_PAGE_TARGET).getString());
 
                         RenderContext renderContext = errorPageService.createRenderContext(request, response, session.getUser());
                         renderContext.setWorkspace(urlResolver.getWorkspace());
