@@ -24,6 +24,7 @@ import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -112,6 +113,10 @@ public class ErrorPageHandler implements ErrorHandler {
                 JahiaSite siteByKey = null;
                 siteByKey = siteService.getSiteByKey(StringUtils.substringAfterLast(sitePath, "/"), session);
                 List<Locale> languagesAsLocales = siteByKey.getLanguagesAsLocales();
+                if (languagesAsLocales.contains(resolverLocale) && isLanguageInUrl(request, resolverLocale)) {
+                    // The URL names a language of the fallback site
+                    return resolverLocale;
+                }
                 while (requestLocale.hasNext()) {
                     Locale next = (Locale) requestLocale.next();
                     if (languagesAsLocales.contains(next)) {
@@ -178,6 +183,21 @@ public class ErrorPageHandler implements ErrorHandler {
      * switcher or the redirect of the login form, are rewritten to the requested URL in the same language. This runs
      * on the final output, so the cached fragments of the target page keep their own links.
      */
+    /**
+     * Whether the URI the browser sent names the language, as /de/page.html or /cms/render/live/de/page.html. The URL
+     * resolver cannot tell: the URL rewriting adds the default language to a URL that names none.
+     */
+    private static boolean isLanguageInUrl(HttpServletRequest request, Locale locale) {
+        String forwardedFrom = (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI);
+        String path = StringUtils.removeStart(forwardedFrom != null ? forwardedFrom : request.getRequestURI(), request.getContextPath());
+        String renderServletPath = Render.getRenderServletPath() + "/";
+        if (path.startsWith(renderServletPath)) {
+            // Skip the workspace
+            path = "/" + StringUtils.substringAfter(path.substring(renderServletPath.length()), "/");
+        }
+        return path.startsWith("/" + locale + "/");
+    }
+
     private static String retargetSelfLinks(String html, HttpServletRequest request, URLResolver urlResolver, JCRSiteNode site, JCRNodeWrapper target) {
         String requestedPath = urlResolver.getPath();
         if (!requestedPath.startsWith(site.getPath() + "/")) {
