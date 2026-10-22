@@ -100,6 +100,10 @@ public class ErrorPageHandler implements ErrorHandler {
         try {
             Locale locale = JCRTemplate.getInstance().doExecuteWithSystemSessionAsUser(errorPageService.lookupRootUser().getJahiaUser(), urlResolver.getWorkspace(), null, (JCRSessionWrapper session) -> {
                 Locale resolverLocale = urlResolver.getLocale();
+                if (urlResolver.getSiteInfo() != null) {
+                    // The URL resolved the site, so its language is the one the visitor asked for
+                    return resolverLocale;
+                }
                 Iterator requestLocale = request.getLocales().asIterator();
                 JahiaSite siteByKey = null;
                 siteByKey = siteService.getSiteByKey(StringUtils.substringAfterLast(sitePath, "/"), session);
