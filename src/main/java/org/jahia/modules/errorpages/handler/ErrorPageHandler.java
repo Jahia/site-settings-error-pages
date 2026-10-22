@@ -2,6 +2,7 @@ package org.jahia.modules.errorpages.handler;
 
 import org.apache.commons.lang.StringUtils;
 import org.jahia.api.Constants;
+import org.jahia.bin.Render;
 import org.jahia.bin.errors.ErrorHandler;
 import org.jahia.exceptions.*;
 import org.jahia.modules.errorpages.ErrorPageRequestWrapper;
@@ -31,6 +32,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * capture rendering exceptions and redirect them to custom error pages 400, 401, 403, 404, 500
@@ -152,6 +156,7 @@ public class ErrorPageHandler implements ErrorHandler {
                         renderContext.setMainResource(resource);
 
                         String out = RenderService.getInstance().render(resource, renderContext).trim();
+                        out = retargetSelfLinks(out, request, urlResolver, site, node);
                         response.setHeader("Content-Type", "text/html");
                         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
                         response.setStatus(errorStatus);
@@ -166,6 +171,40 @@ public class ErrorPageHandler implements ErrorHandler {
             LOGGER.error(String.format("Error while rendering an error page for the code %d", errorStatus), e);
         }
         return false;
+    }
+
+    /**
+     * The error page is the target page rendered on the requested URL. Its links to itself, such as the language
+     * switcher or the redirect of the login form, are rewritten to the requested URL in the same language. This runs
+     * on the final output, so the cached fragments of the target page keep their own links.
+     */
+    private static String retargetSelfLinks(String html, HttpServletRequest request, URLResolver urlResolver, JCRSiteNode site, JCRNodeWrapper target) {
+        String requestedPath = urlResolver.getPath();
+        if (!requestedPath.startsWith(site.getPath() + "/")) {
+            return html;
+        }
+        // A cached fragment keeps the URL form of the host that rendered it first: /fr/sites/<key>/page.html or /fr/page.html
+        String prefix = "(" + Pattern.quote(request.getContextPath()) + "(?:" + Pattern.quote(Render.getRenderServletPath() + "/" + urlResolver.getWorkspace()) + ")?"
+                + "(?:/(?:" + site.getLanguages().stream().map(Pattern::quote).collect(Collectors.joining("|")) + "))?)";
+        String result = html;
+        result = retarget(result, prefix, target.getPath() + ".html", requestedPath);
+        result = retarget(result, prefix, StringUtils.removeStart(target.getPath(), site.getPath()) + ".html", StringUtils.removeStart(requestedPath, site.getPath()));
+        return result;
+    }
+
+    private static String retarget(String html, String prefix, String targetPath, String requestedPath) {
+        Matcher matcher = Pattern.compile("([\"'])" + prefix + Pattern.quote(targetPath) + "\\1").matcher(html);
+        StringBuffer result = new StringBuffer();
+        while (matcher.find()) {
+            String replacement = matcher.group(1) + matcher.group(2) + escapeAttribute(requestedPath) + matcher.group(1);
+            matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(result);
+        return result.toString();
+    }
+
+    private static String escapeAttribute(String value) {
+        return StringUtils.replaceEach(value, new String[]{"&", "<", ">", "\"", "'"}, new String[]{"&amp;", "&lt;", "&gt;", "&#034;", "&#039;"});
     }
 
     public void setErrorPageService(ErrorPageService errorPageService) {
